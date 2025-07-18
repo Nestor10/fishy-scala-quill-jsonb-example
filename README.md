@@ -278,6 +278,9 @@ fishy-scala-quill-jsonb-example/
 ├── .gitignore               # Git ignore patterns
 ├── .jvmopts                 # JVM options for Java 21 module access
 ├── .scalafmt.conf           # Scalafmt code formatting configuration
+├── .github/workflows/       # GitHub Actions CI/CD workflows
+│   ├── ci.yml               # Continuous integration (build, test, format check)
+│   └── dependencies.yml     # Dependency submission for security insights
 ├── k8s/
 │   └── postgres-pod.yaml    # Kubernetes/Podman pod definition
 ├── project/
@@ -309,6 +312,8 @@ libraryDependencies ++= Seq(
 **Additional Setup:**
 - **sbt-dotenv**: Automatic `.env` file loading for environment variables
 - **JsonbValue wrapper**: Type-safe JSONB operations with Quill
+- **scalafmt**: Code formatting with Scala 3 optimized settings
+- **GitHub Actions**: CI/CD workflows for testing and dependency monitoring
 
 ## 🎯 Example Usage
 
@@ -380,6 +385,24 @@ go-task fmt                    # Format code with scalafmt
 go-task fmt:check              # Check code formatting
 go-task fmt:all                # Format all code (main, test, sbt files)
 ```
+
+## 🤖 GitHub Actions CI/CD
+
+This project includes GitHub Actions workflows for automated testing and dependency management:
+
+### CI Workflow (`.github/workflows/ci.yml`)
+- **Triggers**: On push/PR to main/master branches
+- **Java 21** with Temurin distribution
+- **Checks**: Code formatting with scalafmt
+- **Builds**: Compiles the project
+- **Tests**: Runs the test suite
+
+### Dependency Submission (`.github/workflows/dependencies.yml`)
+- **Triggers**: On push to main/master branches
+- **Submits**: Project dependencies to GitHub for security insights
+- **Enables**: Dependabot alerts and dependency graph visualization
+
+The workflows automatically run when you push code to GitHub, ensuring code quality and security monitoring.
 
 ### Development Commands
 ```bash
