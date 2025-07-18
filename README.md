@@ -275,14 +275,21 @@ fishy-scala-quill-jsonb-example/
 ├── Taskfile.yml             # Task definitions for easy setup
 ├── .env                     # Environment configuration (create from .env.example)
 ├── .env.example             # Example environment configuration
+├── .gitignore               # Git ignore patterns
 ├── .jvmopts                 # JVM options for Java 21 module access
+├── .scalafmt.conf           # Scalafmt code formatting configuration
 ├── k8s/
 │   └── postgres-pod.yaml    # Kubernetes/Podman pod definition
+├── project/
+│   ├── build.properties     # SBT version
+│   └── plugins.sbt          # SBT plugins (dotenv, scalafmt)
 ├── src/main/
 │   ├── scala/
 │   │   └── Main.scala       # Main application with JSONB examples
 │   └── resources/
 │       └── application.conf # Database configuration
+├── src/test/scala/
+│   └── MySuite.scala        # Test suite
 └── README.md                # This file
 ```
 
@@ -363,7 +370,15 @@ go-task db:reset               # Reset database (nukes and recreates pod)
 go-task compile                # Compile the project
 go-task run                    # Run the application
 go-task clean                  # Clean build artifacts
+go-task test                   # Run tests
 go-task status                 # Show system status
+```
+
+### Code Formatting
+```bash
+go-task fmt                    # Format code with scalafmt
+go-task fmt:check              # Check code formatting
+go-task fmt:all                # Format all code (main, test, sbt files)
 ```
 
 ### Development Commands

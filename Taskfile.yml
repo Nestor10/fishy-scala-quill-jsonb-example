@@ -75,6 +75,22 @@ tasks:
     cmds:
       - sbt test
 
+  # Code formatting
+  fmt:
+    desc: "Format code with scalafmt"
+    cmds:
+      - sbt scalafmt
+
+  fmt:check:
+    desc: "Check code formatting with scalafmt"
+    cmds:
+      - sbt scalafmtCheck
+
+  fmt:all:
+    desc: "Format all code (main, test, sbt files)"
+    cmds:
+      - sbt scalafmtAll
+
   # Development Tasks
   dev:setup:
     desc: "Full development environment setup (schema auto-loaded)"
