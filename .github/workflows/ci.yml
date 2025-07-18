@@ -20,6 +20,9 @@ jobs:
         java-version: '21'
         cache: 'sbt'
     
+    - name: Setup SBT
+      uses: sbt/setup-sbt@v1
+    
     - name: Check code formatting
       run: sbt scalafmtCheckAll
     
@@ -28,3 +31,12 @@ jobs:
     
     - name: Run tests
       run: sbt test
+
+    - name: Run tests with coverage
+      run: sbt coverage test coverageReport
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./target/scala-*/scoverage-report/scoverage.xml
+        fail_ci_if_error: false

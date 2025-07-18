@@ -75,6 +75,25 @@ tasks:
     cmds:
       - sbt test
 
+  # Code coverage
+  coverage:
+    desc: "Run tests with coverage"
+    cmds:
+      - sbt coverage test coverageReport
+
+  coverage:open:
+    desc: "Open coverage report in browser"
+    deps: [coverage]
+    cmds:
+      - |
+        if command -v xdg-open > /dev/null; then
+          xdg-open target/scala-*/scoverage-report/index.html
+        elif command -v open > /dev/null; then
+          open target/scala-*/scoverage-report/index.html
+        else
+          echo "Coverage report generated at: target/scala-*/scoverage-report/index.html"
+        fi
+
   # Code formatting
   fmt:
     desc: "Format code with scalafmt"

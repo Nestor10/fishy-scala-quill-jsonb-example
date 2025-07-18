@@ -376,6 +376,8 @@ go-task compile                # Compile the project
 go-task run                    # Run the application
 go-task clean                  # Clean build artifacts
 go-task test                   # Run tests
+go-task coverage               # Run tests with coverage report
+go-task coverage:open          # Open coverage report in browser
 go-task status                 # Show system status
 ```
 
