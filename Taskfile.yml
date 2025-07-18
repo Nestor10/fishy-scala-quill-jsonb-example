@@ -110,6 +110,17 @@ tasks:
     cmds:
       - sbt scalafmtAll
 
+  # Dependency management
+  deps:
+    desc: "Show dependency tree"
+    cmds:
+      - sbt dependencyTree
+
+  deps:updates:
+    desc: "Check for dependency updates"
+    cmds:
+      - sbt dependencyUpdates
+
   # Development Tasks
   dev:setup:
     desc: "Full development environment setup (schema auto-loaded)"

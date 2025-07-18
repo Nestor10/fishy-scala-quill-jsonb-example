@@ -1,0 +1,65 @@
+name: Dependency Report
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  dependency-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java and Scala
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        cache: 'sbt'
+    
+    - name: Setup SBT
+      uses: sbt/setup-sbt@v1
+    
+    - name: Create minimal .env file for CI
+      run: |
+        echo "POSTGRES_HOST=localhost" > .env
+        echo "POSTGRES_PORT=5432" >> .env
+        echo "POSTGRES_DB=testdb" >> .env
+        echo "POSTGRES_USER=testuser" >> .env
+        echo "POSTGRES_PASSWORD=testpass" >> .env
+    
+    - name: Generate dependency report
+      run: |
+        echo "## Dependency Tree" > dependency-report.md
+        echo "\`\`\`" >> dependency-report.md
+        sbt dependencyTree >> dependency-report.md
+        echo "\`\`\`" >> dependency-report.md
+        echo "" >> dependency-report.md
+        echo "## Dependency Updates" >> dependency-report.md
+        echo "\`\`\`" >> dependency-report.md
+        sbt dependencyUpdates >> dependency-report.md
+        echo "\`\`\`" >> dependency-report.md
+    
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-report
+        path: dependency-report.md
+    
+    - name: Comment PR with dependency report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('dependency-report.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## 📦 Dependency Report\n\n' + report
+          });
