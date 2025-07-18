@@ -1,0 +1,126 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  POSTGRES_DB: '{{.POSTGRES_DB}}'
+  POSTGRES_USER: '{{.POSTGRES_USER}}'
+  POSTGRES_PASSWORD: '{{.POSTGRES_PASSWORD}}'
+  POSTGRES_PORT: '{{.POSTGRES_PORT}}'
+  POSTGRES_HOST: '{{.POSTGRES_HOST}}'
+
+tasks:
+  # PostgreSQL Pod Management
+  start:
+    desc: "Start PostgreSQL as a Podman Pod with K8s YAML"
+    cmds:
+      - |
+        if podman pod exists postgres-jsonb; then
+          echo "PostgreSQL pod is already running"
+        else
+          # Create a temporary pod file with environment variables substituted
+          envsubst < k8s/postgres-pod.yaml > /tmp/postgres-pod-env.yaml
+          podman play kube /tmp/postgres-pod-env.yaml
+          echo "PostgreSQL pod started successfully"
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 10
+          rm -f /tmp/postgres-pod-env.yaml
+        fi
+
+  stop:
+    desc: "Stop and remove PostgreSQL pod"
+    cmds:
+      - podman play kube --down k8s/postgres-pod.yaml || true
+      - podman pod rm -f postgres-jsonb || true
+      - echo "PostgreSQL pod stopped and removed"
+
+  logs:
+    desc: "View PostgreSQL pod logs"
+    cmds:
+      - podman logs postgres-jsonb-postgres
+
+  shell:
+    desc: "Connect to PostgreSQL shell in pod"
+    cmds:
+      - podman exec -it postgres-jsonb-postgres psql -U {{.POSTGRES_USER}} -d {{.POSTGRES_DB}}
+
+  # Database Management
+  db:reset:
+    desc: "Reset database with fresh schema (nukes and recreates pod)"
+    cmds:
+      - task: stop
+      - task: start
+      - echo "Database reset complete - fresh schema auto-loaded from ConfigMap"
+
+  # Application Tasks
+  compile:
+    desc: "Compile the Scala application"
+    cmds:
+      - sbt compile
+
+  run:
+    desc: "Run the Scala application"
+    deps: [compile]
+    cmds:
+      - sbt run
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - sbt clean
+      - rm -rf target/
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - sbt test
+
+  # Development Tasks
+  dev:setup:
+    desc: "Full development environment setup (schema auto-loaded)"
+    cmds:
+      - task: start
+      - task: compile
+      - echo "Development environment ready! Schema auto-loaded from ConfigMap. Run 'go-task run' to start the application"
+
+  dev:reset:
+    desc: "Reset everything for clean development (nukes pod and rebuilds)"
+    cmds:
+      - task: clean
+      - task: db:reset
+      - task: compile
+      - echo "Development environment reset complete"
+
+  # Utility Tasks
+  status:
+    desc: "Show status of all components"
+    cmds:
+      - echo "=== Environment Configuration ==="
+      - echo "PostgreSQL Port{{":"}} {{.POSTGRES_PORT}}"
+      - echo "PostgreSQL Database{{":"}} {{.POSTGRES_DB}}"
+      - echo "PostgreSQL User{{":"}} {{.POSTGRES_USER}}"
+      - echo ""
+      - echo "=== PostgreSQL Pod Status ==="
+      - podman pod list | grep postgres-jsonb || echo "Pod not running"
+      - echo ""
+      - echo "=== Port Status ==="
+      - ss -tulpn | grep {{.POSTGRES_PORT}} || echo "Port {{.POSTGRES_PORT}} not in use"
+      - echo ""
+      - echo "=== Project Build Status ==="
+      - ls -la target/ 2>/dev/null || echo "No build artifacts found"
+
+  help:
+    desc: "Show available tasks with descriptions"
+    cmds:
+      - task --list
+
+  # Quick shortcuts
+  up:
+    desc: "Quick start: postgres pod + compile"
+    cmds:
+      - task: dev:setup
+
+  down:
+    desc: "Quick stop: stop postgres"
+    cmds:
+      - task: stop

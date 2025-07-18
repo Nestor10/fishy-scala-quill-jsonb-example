@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: default
+data:
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres-jsonb
+  namespace: default
+  labels:
+    app: postgres-jsonb
+spec:
+  containers:
+  - name: postgres
+    image: docker.io/library/postgres:15
+    ports:
+    - containerPort: 5432
+      hostPort: ${POSTGRES_PORT}
+    envFrom:
+    - configMapRef:
+        name: postgres-config
+    volumeMounts:
+    - name: postgres-storage
+      mountPath: /var/lib/postgresql/data
+    - name: schema-volume
+      mountPath: /docker-entrypoint-initdb.d
+      readOnly: true
+  volumes:
+  - name: postgres-storage
+    emptyDir: {}
+  - name: schema-volume
+    configMap:
+      name: postgres-schema
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-schema
+  namespace: default
+data:
+  001-schema.sql: |
+    -- Fish aquarium database with JSONB for fish characteristics
+    CREATE TABLE fish(
+        id BIGSERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        characteristics JSONB NOT NULL
+    );
+
+    -- Add some sample fish data inspired by classic children's books
+    INSERT INTO fish (name, characteristics) VALUES 
+    ('One Fish', '{"species": "goldfish", "color": "red", "age": "adult", "has_stripes": false, "personality": "cheerful", "size": "small"}'),
+    ('Two Fish', '{"species": "goldfish", "color": "blue", "age": "adult", "has_stripes": false, "personality": "calm", "size": "small"}'),
+    ('Red Fish', '{"species": "goldfish", "color": "red", "age": "young", "has_stripes": false, "personality": "energetic", "size": "medium"}'),
+    ('Blue Fish', '{"species": "tang", "color": "blue", "age": "young", "has_stripes": false, "personality": "peaceful", "size": "medium"}'),
+    ('Big Fish', '{"species": "grouper", "color": "grey", "age": "old", "has_stripes": false, "personality": "wise", "size": "large"}'),
+    ('Little Fish', '{"species": "neon_tetra", "color": "silver", "age": "young", "has_stripes": true, "personality": "playful", "size": "tiny"}');
+
+    -- Create an index on JSONB for better query performance
+    CREATE INDEX idx_fish_characteristics ON fish USING GIN (characteristics);
