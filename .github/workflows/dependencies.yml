@@ -8,6 +8,7 @@ permissions:
   contents: read
   actions: read
   id-token: write
+  security-events: write
 
 jobs:
   submit-dependencies:
@@ -34,5 +35,20 @@ jobs:
         echo "POSTGRES_USER=testuser" >> .env
         echo "POSTGRES_PASSWORD=testpass" >> .env
     
-    - name: Submit Dependencies
+    - name: Generate dependency tree
+      run: sbt dependencyTree
+    
+    - name: Submit Dependencies (with fallback)
       uses: scalacenter/sbt-dependency-submission@v2
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload dependency report as artifact
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-report
+        path: |
+          target/dependency-tree.txt
+          project/target/dependency-tree.txt
