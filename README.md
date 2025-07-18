@@ -1,5 +1,5 @@
 # 🐟 Fish Aquarium Database - ZIO + Quill + PostgreSQL JSONB
-
+[![CI](https://github.com/Nestor10/fishy-scala-quill-jsonb-example/workflows/CI/badge.svg)](https://github.com/Nestor10/fishy-scala-quill-jsonb-example/actions)
 A fun, working example of how to use JSONB with Quill in Scala 3 and ZIO. This project demonstrates a complete fish aquarium database with type-safe JSONB operations using modern Scala.
 
 ## 🎯 What This Project Does
